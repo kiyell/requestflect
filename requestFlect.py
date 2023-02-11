@@ -20,7 +20,7 @@ warnings.filterwarnings('ignore')
 
 
 usage = "Usage : \n\nrequestFlect.py.py <options> <arguements>\n \nOptions : \n -u \t:\t URL of the Website \n -i \t:\t Input file of the URLS\n"
-keyword = '"><script src=https://kiyell.xss.ht></script>'
+keyword = 'testkeyword'
 ua = "Mozilla/5.0 (X11; Linux x86_64; rv:60.0) Gecko/20100101 Firefox/81.0"
 hostinjection_result_list = list()
 acao_result_list = list()
