@@ -213,10 +213,10 @@ def check_response(response):
 		if response.headers.get('access-control-allow-origin') is not None :
 				acao_var=response.headers.get('access-control-allow-origin')
 				if acao_var.find(keyword) > -1 :
-						print("\n[!!] *** Overly Permissive CORS Policy :"+current_target+":METHOD:"+str(current_method))
+						print("\n[!!] *** Overly Permissive CORS Policy : "+current_target+":METHOD:"+str(current_method))
 						show_cache_headers(response)
 				if acao_var.find("null") > -1 or acao_var.find("NULL") > -1:
-						print("\n[!!] *** Trusted null origin CORS Policy :"+current_target+":METHOD:"+str(current_method))
+						print("\n[!!] *** Trusted null origin CORS Policy : "+current_target+":METHOD:"+str(current_method))
 		if acao_var.find(keyword) == -1 :
 		## if ACAO passes then general response head check only if not redirect
 				resp_heads = str(response.headers)
