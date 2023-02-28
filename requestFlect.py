@@ -246,24 +246,20 @@ def check_response(response):
 				print("	Body Port Injection Context sample: | "+b_location_with_context+" |", end="")
 				show_cache_headers(response)
 		#print (response.cookies)
-		
 
-def cookies_check(target_url):
-	global current_target
-	global current_method
+def base_line_check(target_url):
 	global title
-	global o_stcode
-	global o_size
-	current_target = target_url
-	current_method = "c"
+	global timeout_exit
+	global cookies1
+	cookies1 = httpx.Cookies()
+	timeout_exit = 0
+
+	check_title = 1
+	# print("base line check")
 	target_no_uri = target_url.split('/')[1]+target_url.split('/')[2]
 	method_headers_1 = [("Host", target_no_uri),("Cache-Control", "no-store"),("User-Agent", ua)]
-	cookies1 = httpx.Cookies()
-	check_title = 1
-	timeout_exit =0
-	
-	print("\nBaseline & Cookie Injection check Target : "+target_url+"\n")
-	
+	print("\nBaseline check Target : "+target_url+"\n")
+
 	with httpx.Client(verify=False,timeout=10,event_hooks={'response': [check_response]}) as client:
 				headers = httpx.Headers(method_headers_1)
 				request = client.build_request("GET", target_url)
@@ -283,11 +279,26 @@ def cookies_check(target_url):
 				except Exception as e:
 					print(e)
 					timeout_exit+=1
+
+
+def cookies_check(target_url):
+	global current_target
+	global current_method
+	global o_stcode
+	global o_size
+	global cookies2
+	current_target = target_url
+	current_method = "c"
+	target_no_uri = target_url.split('/')[1]+target_url.split('/')[2]
+	method_headers_1 = [("Host", target_no_uri),("Cache-Control", "no-store"),("User-Agent", ua)]
+	check_title = 1
+	
+	
+	base_line_check(target_url)
 					
 	if 1:
 		cookies2 = httpx.Cookies()
 		for c in cookies1:
-			#print("Setting: "+c)
 			cookies2.set(c,keyword)
 			
 		
@@ -386,11 +397,21 @@ def injection_advanced_check(target_url, header_method, special_method, prepends
 			addpath = " @"+keyword
 			
 
-		
+
 		with httpx.Client(verify=False,timeout=10,event_hooks={'response': [check_response]}) as client:
+			# adding cookies to headers, other httpx methods to add cookies don't allow special headers sets like double host headers
+			cookiestring = ""
+			for c in cookies1:
+				cookiestring +=c+"="+cookies1[c]+"; "
+			cookiestring = cookiestring[:-1]
+
+			method_headers[header_method].append(["cookie",cookiestring])
 			headers = httpx.Headers(method_headers[header_method])
 			request = client.build_request("GET"+addpath, target_url+"?"+rand+"="+"h1")
+			# request.cookies = cookies1
 			request.headers = headers
+			
+			
 
 			try:
 				r = client.send(request)
@@ -425,6 +446,7 @@ if args.keyword:
 	keyword = args.keyword
 if args.method:
 	print(args.method)
+	base_line_check(args.input_url)
 	injection_advanced_check(args.input_url,int(args.method),0,False)
 if args.no_color:
 	no_color()
