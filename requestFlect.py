@@ -69,34 +69,6 @@ def is_redirect(status_code) :
 		return False
 
 
-def process_req_file(url_file) :
-	print(1)
-	return
-
-def process_file(url_file) :
-	f = open(url_file,"r")
-	for line in f :
-		line = line.strip()
-		print("\n"+"Scanning : "+line)
-		hostinjection_check(line)
-		acao_check(line)
-	f.close()
-	if len(hostinjection_result_list) == 0 :
-		print("\nNo Vulnerable URL(s)")
-	else :
-		print("\n*** Potential Host Header Injection at :\n")
-		for url in hostinjection_result_list :
-			print(url)
-	
-	if len(acao_result_list)== 0:
-		print("\nNo CORS Misconfig(s)")
-	else :
-		print("\n*** Possible CORS Misconfig at :\n")
-		for url in acao_result_list :
-			print(url)
-	return
-
-
 # this monkey patch is only needed, when you want to remove
 # the 'Host' header
 def _validate(self):
@@ -124,48 +96,6 @@ def write_headers(headers, write):
 
 h11._writers.write_headers = write_headers
 	
-def hostinjection_basic_check(target_url) :
-	target_url=target_url+"/"
-	la=0
-	if validators.url(target_url) :
-		try :
-			response1=requests.get(target_url, headers=hic_header_1, allow_redirects=False, verify=False)
-			response2=requests.get(target_url, headers=hic_header_2, allow_redirects=False, verify=False)
-			response1_location=""
-			response2_location=""
-			
-			
-			if is_redirect(response1.status_code) :
-				if len(response1.headers["Location"]) != 0 :	
-					response1_location=response1.headers["Location"]
-					
-			response1_body=response1.text
-			
-
-			if is_redirect(response2.status_code) :
-				if len(response2.headers["Location"]) != 0 :	
-					response2_location=response2.headers["Location"]
-					
-			response2_body=response2.text
-			
-			if(response1_body.find(keyword) > -1  or
-						   response1_location.find(keyword) > -1 or
-						   response1.status_code==200 or
-						   response2_body.find(keyword) > -1 or
-						   response2_location.find(keyword) > -1) :
-				hostinjection_result_list.append(target_url)
-				print("[!!] Potential Host Header Injection at "+target_url)
-			else :
-								print("-- hostinjection_check pass: "+target_url)
-				
-		except Exception as e:
-			print(e)
-						#print("-- hostinjection_check pass with exception: "+target_url)
-	else :
-		print("\r"+"Malformed URL : "+target_url+"\r")
-	#	exit(1)
-	return
-
 def acao_check(target_url):
 	target_url=target_url+"/"
 	try:
@@ -179,7 +109,7 @@ def acao_check(target_url):
 
 		if(response3_acao.find(keyword) > -1) :
 			acao_result_list.append(target_url)
-			print("[!!] \n*** Overly Permissive CORS Policy :"+target_url)
+			print(Y+"[!!] \n*** Overly Permissive CORS Policy :"+W+target_url)
 			
 
 	except:
@@ -192,8 +122,11 @@ def printdebug(string, end="\n"):
 def show_cache_headers(response):
 	for h in response.headers:
 		if h.find("Cache") > -1 or h.find("cache") > -1:
+			print("Cache Headers: ", end="")
+		if h.find("Cache") > -1 or h.find("cache") > -1:
 			print(h+":"+response.headers.get(h), end= " ")
 	print("\n")
+	base_line_trip_keyword()
 
 def check_response(response):
 
@@ -213,10 +146,10 @@ def check_response(response):
 		if response.headers.get('access-control-allow-origin') is not None :
 				acao_var=response.headers.get('access-control-allow-origin')
 				if acao_var.find(keyword) > -1 :
-						print("\n[!!] *** Overly Permissive CORS Policy : "+current_target+" :METHOD:"+str(current_method))
+						print(Y+"\n[!!] *** Overly Permissive CORS Policy : "+W+current_target+" METHOD:"+str(current_method))
 						show_cache_headers(response)
 				if acao_var.find("null") > -1 or acao_var.find("NULL") > -1:
-						print("\n[!!] *** Trusted null origin CORS Policy : "+current_target+" :METHOD:"+str(current_method))
+						print(Y+"\n[!!] *** Trusted null origin CORS Policy : "+W+current_target+" METHOD:"+str(current_method))
 		if acao_var.find(keyword) == -1 :
 		## if ACAO passes then general response head check only if not redirect
 				resp_heads = str(response.headers)
@@ -224,8 +157,8 @@ def check_response(response):
 				if (resp_heads.find(keyword) > -1 or resp_heads.find(keyword.lower()) > -1):
 						head_index = int(resp_heads.find(keyword))
 						h_location_with_context = str(resp_heads[head_index-10:head_index+len(keyword)+10])
-						print("\n[!!] *** Header Reflection Found :"+current_target+":METHOD:"+str(current_method))
-						print("	Header Injection Context sample: | "+h_location_with_context+" |", end="")
+						print(Y+"\n[!!] *** Header Reflection Found - "+current_target+" METHOD:"+str(current_method)+W)
+						print(B+"	Header Injection Context sample: | "+h_location_with_context+" |"+W, end="")
 						show_cache_headers(response)
 
 		## response body check
@@ -235,22 +168,30 @@ def check_response(response):
 				resp_body = str(response.text)
 				body_index = int(response.text.find(keyword))
 				b_location_with_context = str(response.text[body_index-10:body_index+len(keyword)+10])
-				print("\n[!!] *** Body Reflection Found :"+current_target+":METHOD:"+str(current_method))
-				print("	Body Injection Context sample: | "+b_location_with_context+" |", end="")
+				print(Y+"\n[!!] *** Body Reflection Found - "+current_target+" METHOD:"+str(current_method)+W)
+				print(B+"	Body Injection Context sample: | "+b_location_with_context+" | "+W, end="")
 				show_cache_headers(response)
 		if response.text.find(":11337") > -1 :
 				resp_body = str(response.text)
 				body_index = int(response.text.find(":11337"))
 				b_location_with_context = str(response.text[body_index-10:body_index+len(":11337")+10])
-				print("\n[!!] *** Body Port Reflection Found :"+current_target+":METHOD:"+str(current_method))
-				print("	Body Port Injection Context sample: | "+b_location_with_context+" |", end="")
+				print(Y+"\n[!!] *** Body Port Reflection Found -"+current_target+":METHOD:"+str(current_method)+W)
+				print("	Body Port Injection Context sample: | "+b_location_with_context+" | ", end="")
 				show_cache_headers(response)
 		#print (response.cookies)
+
+		
+
+def base_line_trip_keyword():
+	if baselinerun:
+			print(R+"[!!] *** KEYWORD IN BASELINE - change or investigate for poison from previous tests"+W)
 
 def base_line_check(target_url):
 	global title
 	global timeout_exit
 	global cookies1
+	global baselinerun
+	baselinerun = 1
 	cookies1 = httpx.Cookies()
 	timeout_exit = 0
 
@@ -258,7 +199,7 @@ def base_line_check(target_url):
 	# print("base line check")
 	target_no_uri = target_url.split('/')[1]+target_url.split('/')[2]
 	method_headers_1 = [("Host", target_no_uri),("Cache-Control", "no-store"),("User-Agent", ua)]
-	print("\nBaseline check Target : "+target_url+"\n")
+	print(G+"\nBaseline check Target : "+B+target_url+W+"\n")
 
 	with httpx.Client(verify=False,timeout=10,event_hooks={'response': [check_response]}) as client:
 				headers = httpx.Headers(method_headers_1)
@@ -279,6 +220,7 @@ def base_line_check(target_url):
 				except Exception as e:
 					print(e)
 					timeout_exit+=1
+	baselinerun = 0
 
 
 def cookies_check(target_url):
@@ -310,7 +252,7 @@ def cookies_check(target_url):
 					newtitle = "nochange"
 					if check_title and soup.title is not None:
 						if soup.title.text != title:
-							print("changed!", end = "")
+							print("change", end = "")
 							newtitle = soup.title.text
 					print("("+str(r.status_code)+")["+str(newtitle).strip()+"] d:"+str(o_size - len(r.content)))
 				except Exception as e:
@@ -421,7 +363,7 @@ def injection_advanced_check(target_url, header_method, special_method, prepends
 				if soup.title is not None and title != "notitle":
 					if soup.title.text != title:
 						newtitle = soup.title.text.strip()
-						note = "changed!"
+						note = "change"
 				print("  {"+current_method+"}("+str(o_stcode)+")["+title.strip()+"]=>"+note+"("+str(r.status_code)+")["+newtitle+"] d:"+str(o_size - len(r.content)))
 			except Exception as e:
 				print(e)
@@ -454,7 +396,7 @@ if args.cookie:
 	cookies_check(args.input_url)
 if args.all:
 	cookies_check(args.input_url)
-	print("\nInjection advanced check Target : "+args.input_url+"\n")
+	print(G+"\nInjection advanced check Target : "+B+args.input_url+W+"\n")
 	for x in range(20):
 		injection_advanced_check(args.input_url,x,0,False)
 		time.sleep(3)
