@@ -194,6 +194,7 @@ def base_line_check(target_url):
 	baselinerun = 1
 	cookies1 = httpx.Cookies()
 	timeout_exit = 0
+	# current_method = "baseline"
 
 	check_title = 1
 	# print("base line check")
@@ -216,7 +217,10 @@ def base_line_check(target_url):
 					if is_redirect(r.status_code):
 						check_title = 0
 					o_size = len(r.content)
-					print("  {"+current_method+"}("+str(r.status_code)+")["+str(title).strip()+"] o:"+str(o_size), end ="=>")
+					if current_method == "c":
+						print("  {"+current_method+"}("+str(r.status_code)+")["+str(title).strip()+"] o:"+str(o_size), end ="=>")
+					else:
+						print("  {baseline}("+str(r.status_code)+")["+str(title).strip()+"] o:"+str(o_size), end ="")
 				except Exception as e:
 					print(e)
 					timeout_exit+=1

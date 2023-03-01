@@ -48,7 +48,9 @@ Example: python ./requestFlect.py -k teststring -m 6 https://google.com
 ```
 # Demo
 
-TODO
+Detecting Cache Poisoning possibility by sending two HTTP Host headers [Portswigger Lab Example](https://portswigger.net/web-security/host-header/exploiting/lab-host-header-web-cache-poisoning-via-ambiguous-requests)
+
+[![asciicast](https://asciinema.org/a/WubCBqH1b00XziEn9xR5bKWzI.svg)](https://asciinema.org/a/WubCBqH1b00XziEn9xR5bKWzI)
 
 # Credits:
 
