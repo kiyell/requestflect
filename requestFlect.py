@@ -312,8 +312,8 @@ def injection_advanced_check(target_url, header_method, special_method, prepends
 				#12 method add X-headers,origin,referer wo host
 				[("Origin",  keyword),("Referer", keyword),("X-Forwarded-Host", keyword),("X-Host", keyword),("X-Forwarded-Server", keyword)
 				,("X-HTTP-Host-Override", keyword),("X-Forwarded-For", keyword),("Cache-Control", "no-transform"),("User-Agent", ua)],
-				#13 method fastly-host normal but change host
-				[("Fastly-host", target_no_uri),("Host", keyword),("Cache-Control", "no-transform"),("User-Agent", ua)],
+				#13 method UA is keyword
+				[("Host", target_no_uri),("Cache-Control", "no-transform"),("User-Agent", keyword)],
 				#14 method x-amz-website
 				[("x-amz-website-redirect-location", "https://"+keyword),("Host", target_no_uri),("Cache-Control", "no-transform"),("User-Agent", ua)],
 				#15 method x-original-host, x-original-url, X-Rewrite-URL
